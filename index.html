@@ -700,8 +700,8 @@ function renderCharts(attempt){
   const bpLabels=withC.map(([bp])=>bp);
   const bpScores=withC.map(([,v])=>Math.max(Math.round((v.c/v.n)/maxRate*100),8));
   const bpColors=withC.map(([,v])=>{
-    if(v.n===1)return v.c>=3?'#FF453A':'#FF9F0A';
-    return(v.c/v.n)>=0.5?'#FF453A':'#FF9F0A';
+    if(v.c>=3) return '#FF453A';   // 3+ complaints = red
+    return '#FF9F0A';               // 1-2 complaints = yellow
   });
 
   dc('chart-bp-margin');
