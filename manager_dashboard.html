@@ -796,9 +796,13 @@ function renderCharts(attempt){
   const maxRate=withC.length?withC[0][1].c/withC[0][1].n:1;
   const bpLabels=withC.map(([bp])=>bp);
   const bpScores=withC.map(([,v])=>Math.max(Math.round((v.c/v.n)/maxRate*100),8));
-  const bpColors=withC.map(([,v])=>{
-    if(v.n===1)return v.c>=3?'#FF453A':'#FF9F0A';
-    return(v.c/v.n)>=0.5?'#FF453A':'#FF9F0A';
+  const bpColors=withC.map(([bp,v])=>{
+    // Override: if any single site of this BP has 4+ complaints -> red
+    const bpSites=filteredData.filter(s=>s.bp===bp);
+    const maxSiteC=Math.max(...bpSites.map(s=>cvGet('complaint',s.site).length));
+    if(maxSiteC>=4) return '#FF453A';
+    // Average >= 3.5 -> red
+    return (v.c/v.n)>=3.5?'#FF453A':'#FF9F0A';
   });
 
   dc('chart-bp-margin');
@@ -854,7 +858,7 @@ function renderCharts(attempt){
     sC.setAttribute('width',sWrap.offsetWidth||200);
     new Chart(sC,{
       type:'bar',
-      data:{labels:sitesR.map(s=>sn(s.site)),datasets:[{data:sitesR.map(s=>s.c),backgroundColor:sitesR.map(s=>s.c>=3?'#FF453A':'#FF9F0A'),borderRadius:3,borderSkipped:false,barThickness:3}]},
+      data:{labels:sitesR.map(s=>sn(s.site)),datasets:[{data:sitesR.map(s=>s.c),backgroundColor:sitesR.map(s=>s.c>=4?'#FF453A':'#FF9F0A'),borderRadius:3,borderSkipped:false,barThickness:3}]},
       options:{
         indexAxis:'y',maintainAspectRatio:false,responsive:true,devicePixelRatio:window.devicePixelRatio||2,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const s=sitesR[ctx.dataIndex];return ` ${s.site}: ${s.c} complaint${s.c!==1?'s':''}`;}}}},
@@ -1008,9 +1012,13 @@ function renderCharts(attempt){
   const maxRate=withC.length?withC[0][1].c/withC[0][1].n:1;
   const bpLabels=withC.map(([bp])=>bp);
   const bpScores=withC.map(([,v])=>Math.max(Math.round((v.c/v.n)/maxRate*100),8));
-  const bpColors=withC.map(([,v])=>{
-    if(v.n===1)return v.c>=3?'#FF453A':'#FF9F0A';
-    return(v.c/v.n)>=0.5?'#FF453A':'#FF9F0A';
+  const bpColors=withC.map(([bp,v])=>{
+    // Override: if any single site of this BP has 4+ complaints -> red
+    const bpSites=filteredData.filter(s=>s.bp===bp);
+    const maxSiteC=Math.max(...bpSites.map(s=>cvGet('complaint',s.site).length));
+    if(maxSiteC>=4) return '#FF453A';
+    // Average >= 3.5 -> red
+    return (v.c/v.n)>=3.5?'#FF453A':'#FF9F0A';
   });
 
   dc('chart-bp-margin');
@@ -1066,7 +1074,7 @@ function renderCharts(attempt){
     sC.setAttribute('width',sWrap.offsetWidth||200);
     new Chart(sC,{
       type:'bar',
-      data:{labels:sitesR.map(s=>sn(s.site)),datasets:[{data:sitesR.map(s=>s.c),backgroundColor:sitesR.map(s=>s.c>=3?'#FF453A':'#FF9F0A'),borderRadius:3,borderSkipped:false,barThickness:3}]},
+      data:{labels:sitesR.map(s=>sn(s.site)),datasets:[{data:sitesR.map(s=>s.c),backgroundColor:sitesR.map(s=>s.c>=4?'#FF453A':'#FF9F0A'),borderRadius:3,borderSkipped:false,barThickness:3}]},
       options:{
         indexAxis:'y',maintainAspectRatio:false,responsive:true,devicePixelRatio:window.devicePixelRatio||2,
         plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const s=sitesR[ctx.dataIndex];return ` ${s.site}: ${s.c} complaint${s.c!==1?'s':''}`;}}}},
