@@ -1664,6 +1664,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch(e) {
     applyFilters();
   }
+  // Re-render tiles after CVR data is loaded
+  renderKPIs();
+  setTimeout(()=>{renderCharts();renderManagerRow();},300);
 });
 </script>
 </body>
