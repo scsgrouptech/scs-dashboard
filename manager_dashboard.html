@@ -1647,7 +1647,11 @@ const TEST_DATA = [
 document.addEventListener('DOMContentLoaded', async () => {
   init(TEST_DATA);
   try {
-    const [liveData] = await Promise.all([loadFromGSheet(), loadCVRFromSheet()]);
+    const [liveData, cvrData] = await Promise.all([
+      loadFromGSheet(),
+      fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json()).catch(()=>[])
+    ]);
+    if (Array.isArray(cvrData)) window._cvrLog = cvrData;
     if (liveData && liveData.length > 0) {
       init(liveData);
     } else {
