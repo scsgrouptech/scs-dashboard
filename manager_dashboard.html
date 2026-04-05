@@ -1646,20 +1646,22 @@ const TEST_DATA = [
 
 document.addEventListener('DOMContentLoaded', async () => {
   init(TEST_DATA);
+
+  // Load site data
   try {
-    const [liveData, cvrData] = await Promise.all([
-      loadFromGSheet(),
-      fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json()).catch(()=>[])
-    ]);
-    if (Array.isArray(cvrData)) window._cvrLog = cvrData;
-    if (liveData && liveData.length > 0) {
-      init(liveData);
-    } else {
-      applyFilters();
+    const liveData = await fetch(window._APPS_URL + '?sheet=all').then(r=>r.json());
+    if (Array.isArray(liveData) && liveData.length > 0) init(liveData);
+  } catch(e) {}
+
+  // Load CVR data separately then re-render
+  try {
+    const cvrData = await fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json());
+    if (Array.isArray(cvrData)) {
+      window._cvrLog = cvrData;
+      renderKPIs();
+      setTimeout(()=>{renderCharts();},300);
     }
-  } catch(e) { applyFilters(); }
-  renderKPIs();
-  setTimeout(()=>{renderCharts();renderManagerRow();},300);
+  } catch(e) { console.warn('CVR load failed:', e); }
 });
 </script>
 </body>
