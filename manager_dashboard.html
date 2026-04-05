@@ -733,24 +733,24 @@ function renderKPIs(){
   `;
 
   // Insight tile data
-  const totalComplaints=filteredData.reduce((a,s)=>a+(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===s.site).length,0);
-  const sitesWithC=filteredData.filter(s=>(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===s.site).length>0).length;
-  const atRisk=filteredData.filter(s=>(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===s.site).length>0).sort((a,b)=>(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===b.site).length-(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===a.site).length);
+  const totalComplaints=filteredData.reduce((a,s)=>a+cvGet('complaint',s.site).length,0);
+  const sitesWithC=filteredData.filter(s=>cvGet('complaint',s.site).length>0).length;
+  const atRisk=filteredData.filter(s=>cvGet('complaint',s.site).length>0).sort((a,b)=>cvGet('complaint',b.site).length-cvGet('complaint',a.site).length);
   const atRiskHtml=atRisk.length===0?'<div class="kpi-insight-empty">✅ No complaints logged</div>'
-    :atRisk.slice(0,8).map(s=>{const cnt=(window._cvrLog||[]).filter(r=>r.type==='complaint'&&r.site===s.site).length;const col=RUN_COLORS[nr(s.run)]||'#888';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span><span class="kpi-insight-badge red">${cnt}</span></div>`;}).join('');
+    :atRisk.slice(0,8).map(s=>{const cnt=cvGet('complaint',s.site).length;const col=RUN_COLORS[nr(s.run)]||'#888';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span><span class="kpi-insight-badge red">${cnt}</span></div>`;}).join('');
 
-  const totalRequests=filteredData.reduce((a,s)=>a+(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===s.site).length,0);
-  const sitesWithR=filteredData.filter(s=>(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===s.site).length>0).length;
-  const withReq=filteredData.filter(s=>(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===s.site).length>0).sort((a,b)=>(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===b.site).length-(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===a.site).length);
-  const totalVisits=filteredData.reduce((a,s)=>a+(window._cvrLog||[]).filter(r=>r.type==='visit'&&r.site===s.site).length,0);
-  const sitesWithV=filteredData.filter(s=>(window._cvrLog||[]).filter(r=>r.type==='visit'&&r.site===s.site).length>0).length;
+  const totalRequests=filteredData.reduce((a,s)=>a+cvGet('request',s.site).length,0);
+  const sitesWithR=filteredData.filter(s=>cvGet('request',s.site).length>0).length;
+  const withReq=filteredData.filter(s=>cvGet('request',s.site).length>0).sort((a,b)=>cvGet('request',b.site).length-cvGet('request',a.site).length);
+  const totalVisits=filteredData.reduce((a,s)=>a+cvGet('visit',s.site).length,0);
+  const sitesWithV=filteredData.filter(s=>cvGet('visit',s.site).length>0).length;
   const reqHtml=withReq.length===0?'<div class="kpi-insight-empty">✅ No requests logged</div>'
-    :withReq.slice(0,7).map(s=>{const cnt=(window._cvrLog||[]).filter(r=>r.type==='request'&&r.site===s.site).length;const col=RUN_COLORS[nr(s.run)]||'#888';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span><span class="kpi-insight-badge pink">${cnt}</span></div>`;}).join('')+(withReq.length>7?`<div class="kpi-insight-more">+${withReq.length-7} more</div>`:'');
+    :withReq.slice(0,7).map(s=>{const cnt=cvGet('request',s.site).length;const col=RUN_COLORS[nr(s.run)]||'#888';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span><span class="kpi-insight-badge pink">${cnt}</span></div>`;}).join('')+(withReq.length>7?`<div class="kpi-insight-more">+${withReq.length-7} more</div>`:'');
 
   const now=new Date(),cutoff=now.getTime()-(10*24*60*60*1000);
-  const recVisit=filteredData.filter(s=>{const v=(window._cvrLog||[]).filter(r=>r.type==='visit'&&r.site===s.site);return!v.length||new Date(v[v.length-1].date).getTime()<cutoff;}).sort((a,b)=>b.annualClient-a.annualClient);
+  const recVisit=filteredData.filter(s=>{const v=cvGet('visit',s.site);return!v.length||new Date(v[v.length-1].date).getTime()<cutoff;}).sort((a,b)=>b.annualClient-a.annualClient);
   const recHtml=recVisit.length===0?'<div class="kpi-insight-empty">✅ All sites visited recently</div>'
-    :recVisit.slice(0,10).map(s=>{const v=(window._cvrLog||[]).filter(r=>r.type==='visit'&&r.site===s.site);const col=RUN_COLORS[nr(s.run)]||'#888';const last=v.length?v[v.length-1].date.split(' ').slice(0,3).join(' '):'';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span>${last?`<span class="kpi-insight-badge blue">${last}</span>`:''}</div>`;}).join('');
+    :recVisit.slice(0,10).map(s=>{const v=cvGet('visit',s.site);const col=RUN_COLORS[nr(s.run)]||'#888';const last=v.length?v[v.length-1].date.split(' ').slice(0,3).join(' '):'';return `<div class="kpi-insight-row"><span class="kpi-insight-dot" style="background:${col}"></span><span class="kpi-insight-name">${s.site}</span>${last?`<span class="kpi-insight-badge blue">${last}</span>`:''}</div>`;}).join('');
 
   document.getElementById('insight-row').innerHTML=`
     <div class="kpi kpi-insight">
@@ -1260,8 +1260,6 @@ function applyFilters(){
   setTimeout(()=>{renderCharts();renderManagerRow();},300);
 }
 
-window.renderKPIs = renderKPIs;
-
 function renderRunCards(){}
 
 function renderTable(){
@@ -1348,8 +1346,6 @@ function downloadCSV(){
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycwy5SVhEJXIANP68VAgruzsavgfxjKgoWYgSZAY1Z-AhAp4XS6Da5yf0sBsYyau4_Pw/exec';
-window._APPS_URL = APPS_SCRIPT_URL;
-window._cvrLog = [];
 async function loadFromGSheet() {
   if (!APPS_SCRIPT_URL) return null;
   try {
@@ -1639,13 +1635,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const liveData = await loadFromGSheet();
     if (liveData && liveData.length > 0) init(liveData);
   } catch(e) {}
-  fetch(window._APPS_URL + '?sheet=CVR_Log')
-    .then(r=>r.json())
-    .then(data=>{ if(Array.isArray(data)){window._cvrLog=data;window.renderKPIs();setTimeout(window.renderCharts,300);} })
-    .catch(()=>{});
+
+  // Fetch CVR from sheet and store into localStorage so existing tile logic works
+  try {
+    const cvrData = await fetch(APPS_SCRIPT_URL + '?sheet=CVR_Log').then(r=>r.json());
+    if (Array.isArray(cvrData) && cvrData.length > 0) {
+      // Group by type+site and store in localStorage format
+      const grouped = {};
+      cvrData.forEach(row => {
+        const key = row.type + '_' + row.site;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push({ id: row.id, date: row.timestamp, note: row.note || '' });
+      });
+      Object.entries(grouped).forEach(([key, entries]) => {
+        localStorage.setItem(key, JSON.stringify(entries));
+      });
+      // Re-render tiles with live CVR data
+      applyFilters();
+    }
+  } catch(e) { console.warn('CVR sync failed:', e); }
 });
 </script>
 </body>
-</html
-window.renderCharts = renderCharts;
->
+</html>
