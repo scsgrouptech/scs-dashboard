@@ -563,26 +563,6 @@ tbody tr:hover{background:#F7F7FA}
 
 <script>
 
-// ── CVR LIVE DATA ──
-let cvrLog = [];
-
-async function loadCVRFromSheet() {
-  try {
-    const res = await fetch(APPS_SCRIPT_URL + '?sheet=CVR_Log');
-    const data = await res.json();
-    if (Array.isArray(data)) cvrLog = data;
-  } catch(e) { console.warn('CVR fetch failed:', e); }
-}
-
-function cvrCount(type, site) {
-  return cvrLog.filter(r => r.type === type && r.site === site).length;
-}
-
-function cvrEntries(type, site) {
-  return cvrLog.filter(r => r.type === type && r.site === site);
-}
-
-
 try {
 
 // Dynamic run colours — assigned when data loads
@@ -1365,8 +1345,21 @@ function downloadCSV(){
   URL.revokeObjectURL(url);showToast('Data downloaded');
 }
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycwy5SVhEJXIANP68VAgruzsavgfxjKgoWYgSZAY1Z-AhAp4XS6Da5yf0sBsYyau4_Pw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3fWlOK3vaf1GNW_GQg3EYH2YJHzHinjpd-1vukomyfCvd-cLsDYb5ZzBPP_X4u7AXkg/exec';
+window._cvrLog = [];
+window._APPS_URL = 'https://script.google.com/macros/s/AKfycbw3fWlOK3vaf1GNW_GQg3EYH2YJHzHinjpd-1vukomyfCvd-cLsDYb5ZzBPP_X4u7AXkg/exec';
 
+async function loadCVRFromSheet() {
+  try {
+    const res = await fetch(window._APPS_URL + '?sheet=CVR_Log');
+    const data = await res.json();
+    if (Array.isArray(data)) window._cvrLog = data;
+  } catch(e) { console.warn('CVR fetch failed:', e); }
+}
+
+function cvrEntries(type, site) {
+  return (window._cvrLog||[]).filter(r => r.type === type && r.site === site);
+}
 
 async function loadFromGSheet() {
   if (!APPS_SCRIPT_URL) return null;
@@ -1654,20 +1647,13 @@ const TEST_DATA = [
 document.addEventListener('DOMContentLoaded', async () => {
   init(TEST_DATA);
   try {
-    const [liveData] = await Promise.all([
-      loadFromGSheet(),
-      loadCVRFromSheet()
-    ]);
+    const [liveData] = await Promise.all([loadFromGSheet(), loadCVRFromSheet()]);
     if (liveData && liveData.length > 0) {
       init(liveData);
-      showToast('Live data loaded');
     } else {
       applyFilters();
     }
-  } catch(e) {
-    applyFilters();
-  }
-  // Re-render tiles after CVR data is loaded
+  } catch(e) { applyFilters(); }
   renderKPIs();
   setTimeout(()=>{renderCharts();renderManagerRow();},300);
 });
