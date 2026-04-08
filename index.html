@@ -913,9 +913,9 @@ async function loadFromGSheet() {
         bp: (r[kB]||'Unknown BP').toString().trim(),
         run: (r[kR]||'City').toString().trim(),
         weeklyClient: wc,
-        weeklyBP: wb||ab/52,
+        weeklyBP: wb,
         annualClient: wc*52,
-        annualBP: ab,
+        annualBP: wb*52,
         days: parseInt(r[kD])||0,
         cleaningDays: (r[kCD]||'').toString().trim()
       };
