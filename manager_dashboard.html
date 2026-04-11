@@ -1636,17 +1636,32 @@ const TEST_DATA = [
 document.addEventListener('DOMContentLoaded', async () => {
   init(TEST_DATA);
   try {
-    const liveData = await loadFromGSheet();
-    if (liveData && liveData.length > 0) init(liveData);
-  } catch(e) {}
-
-  // Fetch CVR from sheet and store into localStorage so existing tile logic works
-  try {
-    const cvrData = await fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json());
-    if (Array.isArray(cvrData) && cvrData.length > 0) {
-      // Group by type+site and store in localStorage format
+    const [siteRes, cvrRes] = await Promise.all([
+      fetch(window._APPS_URL + '?sheet=all').then(r=>r.json()).catch(()=>null),
+      fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json()).catch(()=>[])
+    ]);
+    if (Array.isArray(siteRes) && siteRes.length > 0) {
+      const mapped = siteRes.map(r => {
+        const wc = parseFloat(r['Weekly Client $'])||0;
+        const wb = parseFloat(r['Weekly BP $'])||0;
+        return {
+          site: (r['Name']||r['Site']||'').toString().trim(),
+          address: (r['Address']||'').toString().trim(),
+          suburb: (r['Suburb']||'').toString().trim(),
+          bp: (r['BP']||'').toString().trim(),
+          run: (r['Run']||'').toString().trim(),
+          csm: (r['CSM']||'').toString().trim(),
+          weeklyClient: wc, weeklyBP: wb,
+          annualClient: wc*52, annualBP: wb*52,
+          days: parseInt(r['Days'])||0,
+          cleaningDays: (r['Cleaning Days']||'').toString().trim()
+        };
+      }).filter(d=>d.site);
+      if (mapped.length > 0) init(mapped);
+    }
+    if (Array.isArray(cvrRes) && cvrRes.length > 0) {
       const grouped = {};
-      cvrData.forEach(row => {
+      cvrRes.forEach(row => {
         const key = row.type + '_' + row.site;
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push({ id: row.id, date: row.timestamp, note: row.note || '' });
@@ -1654,10 +1669,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       Object.entries(grouped).forEach(([key, entries]) => {
         localStorage.setItem(key, JSON.stringify(entries));
       });
-      // Re-render tiles with live CVR data
       applyFilters();
     }
-  } catch(e) { console.warn('CVR sync failed:', e); }
+  } catch(e) { console.warn('Load failed:', e); }
 });
 </script>
 </body>
