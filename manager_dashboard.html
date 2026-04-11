@@ -1642,7 +1642,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Fetch CVR from sheet and store into localStorage so existing tile logic works
   try {
-    const cvrData = await fetch(APPS_SCRIPT_URL + '?sheet=CVR_Log').then(r=>r.json());
+    const cvrData = await fetch(window._APPS_URL + '?sheet=CVR_Log').then(r=>r.json());
     if (Array.isArray(cvrData) && cvrData.length > 0) {
       // Group by type+site and store in localStorage format
       const grouped = {};
